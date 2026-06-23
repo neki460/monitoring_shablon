@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: 'yandex-alert-notification'
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1m
+
+receivers:
+  - name: 'yandex-alert-notification'
+    email_configs:
+      - to: 'почта_получателя@yandex.ru'
+        from: 'почта_отправителя@yandex.ru'
+        smarthost: 'smtp.yandex.ru:587'
+        auth_username: 'почта_получателя@yandex.ru'
+        auth_identity: 'почта_получателя@yandex.ru'
+        auth_password: 'ПАРОЛЬ_СГЕНЕРИРОВАННЫЙ_В_ПРОФИЛЕ_ЯНДЕКСА' 

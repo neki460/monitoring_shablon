@@ -1,0 +1,85 @@
+groups:
+  - name: ca
+    rules:
+      - alert: CA_High_memory_utilization
+        expr: ((node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"}) * 100) < 10
+        for: 1m
+        labels:
+          severity: 'critical'
+        annotations:
+          title: 'High memory utilization'
+          description: 'Доступно памяти менее 10% ({{ $value }}%)'
+
+      - alert: CA_Disk_space_problem
+        expr: ((node_filesystem_avail_bytes{job="node", mountpoint="/", fstype!="rootfs"} / node_filesystem_size_bytes{job="node", mountpoint="/", fstype!="rootfs"}) * 100) < 10
+        for: 1m
+        labels:
+          severity: 'critical'
+        annotations:
+          title: 'Disk space problem'
+          description: 'Свободного места на диске менее 10% ({{ $value }}%)'
+
+      - alert: CA_node_exporter_down
+        expr: up{job="node"} == 0
+        for: 10s
+        labels:
+          severity: 'critical'
+        annotations:
+          title: 'CA Node Exporter Down'
+          description: 'Node Exporter не отвечает'
+
+      - alert: CA_High_CPU_utilization
+        expr: node_load1{job="node"} > 0.9
+        for: 1m
+        labels:
+          severity: 'warning'
+        annotations:
+          title: 'High CPU utilization'
+          description: 'Средняя нагрузка за 1 минуту: {{ $value }}'
+
+  - name: docker-alerts
+    rules:
+      - alert: Docker_HighCPUUsage
+        expr: dex_cpu_utilization_percent > 80
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          summary: "Высокое использование CPU в контейнере {{ $labels.container_name }}"
+          description: "Использование CPU: {{ $value }}%"
+
+      - alert: Docker_HighMemoryUsage
+        expr: dex_memory_utilization_percent > 85
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          summary: "Высокое использование памяти в контейнере {{ $labels.container_name }}"
+          description: "Использование памяти: {{ $value }}%"
+
+      - alert: Docker_ContainerDown
+        expr: dex_container_running == 0
+        for: 1m
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "Контейнер {{ $labels.container_name }} остановлен"
+          description: "Контейнер не работает более 1 минуты"
+
+      - alert: Docker_ContainerRestarting
+        expr: rate(dex_container_restarts_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: 'warning'
+        annotations:
+          summary: "Контейнер {{ $labels.container_name }} часто перезапускается"
+          description: "Скорость перезапусков: {{ $value }} перезапусков/сек"
+
+      - alert: Docker_ExporterDown
+        expr: up{job="dex"} == 0
+        for: 10s
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "DEX Exporter не отвечает"
+          description: "Docker Exporter (dex) недоступен"
